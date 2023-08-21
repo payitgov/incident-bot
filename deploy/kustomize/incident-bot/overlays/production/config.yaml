@@ -51,7 +51,7 @@ options:
   # Automatically invite Slack groups to newly created incidents
   auto_invite_groups:
     # Set to true to enable
-    enabled: false
+    enabled: true
     # List of group names as configured in Slack
     groups:
       - pe
