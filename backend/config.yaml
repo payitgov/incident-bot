@@ -15,12 +15,12 @@ severities:
 # Whether or not to deliver incident update reminders for critical incidents
 # This will send out a reminder message to an active incident channel at the supplied
 # interval
-#incident_reminders:
+incident_reminders:
   # Any severity in this list will have a scheduled reminder job created
   # This job will remind the channel to send out updates at the interval
   # specified rate below
- # qualifying_severities:
- #   - sev1
+  qualifying_severities:
+  #  - sev1
   # rate determines how often reminders are sent to an incident channel
   # This is an int and is interpreted as minutes
 #  rate: 30
