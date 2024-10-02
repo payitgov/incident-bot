@@ -10,6 +10,7 @@ severities:
   sev3: 'sev3'
   sev4: 'sev4'
 statuses:
+  - declared
   - investigating
   - identified
   - monitoring

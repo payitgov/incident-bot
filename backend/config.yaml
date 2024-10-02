@@ -26,6 +26,7 @@ severities:
 #  rate: 30
 # Statuses defined here will appear as options for each incident
 statuses:
+  - declared
   - investigating
   - identified
   - monitoring
