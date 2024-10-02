@@ -26,11 +26,13 @@ severities:
 #  rate: 30
 # Statuses defined here will appear as options for each incident
 statuses:
-  - declared
-  - investigating
-  - identified
-  - monitoring
-  - resolved
+  declared:
+    initial: true
+  triage:
+  mitigated: {}
+  recovered: {}
+  closed:
+    final: true
 options:
   # The topic that will be set on all incident channels
   channel_topic:
