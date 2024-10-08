@@ -78,7 +78,7 @@ class IncidentChannelDigestNotification:
                             ),
                             "action_id": "incident.join_incident_channel",
                         },
-                        {
+ """                        {
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
@@ -106,7 +106,7 @@ class IncidentChannelDigestNotification:
                                 "incident_postmortems"
                             ),
                             "action_id": "incident.incident_postmortem_link",
-                        },
+                        }, """
                     ],
                 },
             ],
