@@ -319,13 +319,13 @@ def reaction_added(event, say):
 Helper Functions
 """
 
-
+"""
 @app.event("message")
 def handle_message_events(body, logger):
     logger.debug(body)
-    """
-    Handle monitoring digest channel
-    """
+    
+    Handle monitoring digest channel   (this line was originally commented out)
+
     if (
         # The presence of subtype indicates events like message updates, etc.
         # We don't want to act on these.
@@ -405,7 +405,7 @@ def handle_message_events(body, logger):
                 logger.error(
                     f"Error sending help message to incident channel during increased chatter: {error}"
                 )
-
+"""
 
 """
 Statuspage
