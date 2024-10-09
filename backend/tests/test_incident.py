@@ -651,30 +651,30 @@ class TestIncidentManagement:
                         "url": "https://test.slack.com/archives/mock",
                         "action_id": "incident.join_incident_channel",
                     },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "Conference"},
-                        "url": "mock",
-                        "action_id": "incident.click_conference_bridge_link",
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Incident Guide",
-                        },
-                        "url": "https://changeme.com",
-                        "action_id": "incident.incident_guide_link",
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Incident Postmortems",
-                        },
-                        "url": "https://changeme.com",
-                        "action_id": "incident.incident_postmortem_link",
-                    },
+#                    {
+#                        "type": "button",
+#                        "text": {"type": "plain_text", "text": "Conference"},
+#                        "url": "mock",
+#                        "action_id": "incident.click_conference_bridge_link",
+#                    },
+#                    {
+#                        "type": "button",
+#                        "text": {
+#                            "type": "plain_text",
+#                            "text": "Incident Guide",
+#                        },
+#                        "url": "https://changeme.com",
+#                        "action_id": "incident.incident_guide_link",
+#                    },
+#                    {
+#                        "type": "button",
+#                        "text": {
+#                            "type": "plain_text",
+#                            "text": "Incident Postmortems",
+#                        },
+#                        "url": "https://changeme.com",
+#                        "action_id": "incident.incident_postmortem_link",
+#                    },
                 ],
             },
         ]
