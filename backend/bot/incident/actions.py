@@ -815,19 +815,7 @@ async def summarize_to_canvas(
         result = create_or_update_channel_canvas(channel_id)
         
         # Post a message to the channel about the summary
-        if "error" not in result:
-            message = f"I've created/updated the channel Canvas with a summary of the incident discussion."
-            slack_web_client.chat_postMessage(
-                channel=channel_id,
-                text=message
-            )
-            
-            # Write audit log
-            log.write(
-                incident_id=channel_name,
-                event="Channel text summarized and posted to Canvas.",
-            )
-        else:
+        if "error" in result:
             error_message = f"Failed to create/update Canvas: {result.get('error', 'Unknown error')}"
             slack_web_client.chat_postMessage(
                 channel=channel_id,
