@@ -26,6 +26,7 @@ from bot.slack.client import (
     invite_user_to_channel,
     slack_workspace_id,
 )
+from bot.slack.canvas import create_or_update_channel_canvas
 from bot.slack.incident_logging import read as read_incident_pinned_items
 from bot.templates.incident.digest_notification import (
     IncidentChannelDigestNotification,
@@ -57,6 +58,15 @@ async def archive_incident_channel(
     )
     try:
         logger.info(f"Archiving {incident_data.channel_name}.")
+        
+        # Remove the scheduled Canvas update job
+        try:
+            from bot.scheduler.scheduler import process
+            process.delete_job(f"{incident_data.channel_name}_canvas_update")
+            logger.info(f"Removed scheduled Canvas update job for {incident_data.channel_name}")
+        except Exception as error:
+            logger.error(f"Error removing Canvas update job: {error}")
+            
         result = slack_web_client.conversations_archive(
             channel=incident_data.channel_id
         )
@@ -783,6 +793,46 @@ async def set_severity(
         incident_id=incident_data.channel_name,
         event=f"Severity set to {action_value.upper()}.",
     )
+
+
+async def summarize_to_canvas(
+    action_parameters: type[ActionParametersSlack],
+):
+    """When an incoming action is incident.summarize_to_canvas, this method
+    summarizes the incident channel text and posts it to the channel's Canvas.
+
+    Keyword arguments:
+    action_parameters -- type[ActionParametersSlack] containing Slack actions data
+    """
+    try:
+        incident_data = db_read_incident(
+            channel_id=action_parameters.channel_details.get("id")
+        )
+        channel_id = incident_data.channel_id
+        channel_name = incident_data.channel_name
+        
+        # Create or update the channel's Canvas with a summary
+        result = create_or_update_channel_canvas(channel_id)
+        
+        # Post a message to the channel about the summary
+        if "error" in result:
+            error_message = f"Failed to create/update Canvas: {result.get('error', 'Unknown error')}"
+            slack_web_client.chat_postMessage(
+                channel=channel_id,
+                text=error_message
+            )
+            logger.error(f"Error creating/updating Canvas for {channel_name}: {result.get('error')}")
+            
+    except Exception as e:
+        logger.error(f"Error in summarize_to_canvas: {e}")
+        # Try to post an error message to the channel
+        try:
+            slack_web_client.chat_postMessage(
+                channel=action_parameters.channel_details.get("id"),
+                text=f"Error creating Canvas summary: {str(e)}"
+            )
+        except Exception:
+            pass
 
 
 """

@@ -13,6 +13,7 @@ from bot.slack.client import (
     slack_web_client,
     store_slack_user_list,
 )
+from bot.slack.canvas import create_or_update_channel_canvas
 from pytz import timezone
 from typing import List
 
@@ -341,3 +342,47 @@ if "pagerduty" in config.active.integrations:
         minutes=30,
         replace_existing=True,
     )
+
+
+def add_incident_scheduled_canvas_update(
+    channel_name: str, channel_id: str, rate: int = 15
+):
+    """
+    Adds a scheduled job to update the Canvas for an incident channel
+    with a summary of the channel text at regular intervals
+    
+    Args:
+        channel_name: The name of the incident channel
+        channel_id: The ID of the incident channel
+        rate: How often to update the Canvas, in minutes (default: 15)
+    """
+    logger.info(f"Creating scheduled Canvas update job for {channel_name}.")
+    process.scheduler.add_job(
+        id=f"{channel_name}_canvas_update",
+        func=scheduled_canvas_update,
+        args=[channel_name, channel_id],
+        trigger="interval",
+        name=f"Update Canvas for {channel_name} every {rate} minutes",
+        minutes=rate,
+        replace_existing=True,
+    )
+
+
+def scheduled_canvas_update(channel_name: str, channel_id: str):
+    """
+    Updates the Canvas for an incident channel with a summary of the channel text
+    
+    Args:
+        channel_name: The name of the incident channel
+        channel_id: The ID of the incident channel
+    """
+    try:
+        logger.info(f"Updating Canvas for {channel_name}")
+        
+        # Create or update the channel's Canvas with a summary
+        result = create_or_update_channel_canvas(channel_id)
+        
+        if "error" in result:
+            logger.error(f"Error updating Canvas for {channel_name}: {result.get('error')}")
+    except Exception as e:
+        logger.error(f"Error in scheduled Canvas update for {channel_name}: {e}")

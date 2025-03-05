@@ -162,6 +162,16 @@ class IncidentChannelBoilerplateMessage:
                 "action_id": "open_incident_bot_timeline",
                 "style": "primary",
             },
+            {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "Summarize to Canvas",
+                    "emoji": True,
+                },
+                "action_id": "incident.summarize_to_canvas",
+                "style": "primary",
+            },
         ]
         if (
             "atlassian" in config.active.integrations

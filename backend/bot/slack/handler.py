@@ -181,7 +181,15 @@ def handle_incident_set_status(ack, body):
 def handle_incident_set_severity(ack, body):
     logger.debug(body)
     ack()
-    asyncio.run(inc_actions.set_severity(action_parameters=parse_action(body)))
+    action_parameters = parse_action(body)
+    asyncio.run(inc_actions.set_severity(action_parameters))
+
+
+@app.action("incident.summarize_to_canvas")
+def handle_incident_summarize_to_canvas(ack, body):
+    ack()
+    action_parameters = parse_action(body)
+    asyncio.run(inc_actions.summarize_to_canvas(action_parameters))
 
 
 """
