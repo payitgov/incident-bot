@@ -352,6 +352,23 @@ def create_incident(
                 logger.error(
                     f"Error sending conference bridge link to channel: {error}"
                 )
+                
+            """
+            Set up scheduled Canvas updates
+            """
+            try:
+                from bot.scheduler.scheduler import add_incident_scheduled_canvas_update
+                
+                # Schedule Canvas updates every 15 minutes
+                add_incident_scheduled_canvas_update(
+                    channel_name=created_channel_details["name"],
+                    channel_id=created_channel_details["id"],
+                    rate=15
+                )
+                logger.info(f"Scheduled Canvas updates for {created_channel_details['name']}")
+            except Exception as error:
+                logger.error(f"Error setting up scheduled Canvas updates: {error}")
+                
             """
             Write incident entry to database
             """
