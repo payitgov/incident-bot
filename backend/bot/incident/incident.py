@@ -216,7 +216,13 @@ class Incident:
             "",
             formatted_channel_name_suffix,
         )
-        return f"{datetime.today().strftime('%Y-%m-%d')}-{formatted_channel_name_suffix}"
+        
+        # Check if the current date is already in the suffix and remove it if present
+        current_date = datetime.today().strftime('%Y-%m-%d')
+        if f"{current_date}-" in formatted_channel_name_suffix:
+            formatted_channel_name_suffix = formatted_channel_name_suffix.replace(f"{current_date}-", "", 1)
+        
+        return f"{current_date}-{formatted_channel_name_suffix}"
 
     def __generate_conference_link(self):
         if (
