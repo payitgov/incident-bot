@@ -14,6 +14,7 @@ from bot.models.incident import (
     db_update_incident_last_update_sent_col,
     db_update_jira_issues_col,
 )
+from bot.models.pg import Incident
 from bot.models.pager import read_pager_auto_page_targets
 from bot.shared import tools
 from bot.slack.client import check_user_in_group
@@ -36,6 +37,97 @@ from datetime import datetime
 logger = logging.getLogger("slack.modals")
 
 placeholder_severity = [sev for sev, _ in config.active.severities.items()][-1]
+
+
+def update_boilerplate_with_jira_info(client, incident_id, jira_key, jira_link):
+    """
+    Update the boilerplate message to include JIRA ticket information
+    
+    Args:
+        client: Slack client
+        incident_id: Channel ID of the incident
+        jira_key: JIRA issue key (e.g., "SRE-123")
+        jira_link: Full JIRA issue URL
+    """
+    try:
+        # Get the incident record to find the boilerplate message timestamp
+        incident_record = db_read_incident(incident_id=incident_id)
+        if not incident_record:
+            logger.error(f"No incident record found for {incident_id}")
+            return
+            
+        bp_message_ts = incident_record.bp_message_ts
+        if not bp_message_ts:
+            logger.error(f"No boilerplate message timestamp found for incident {incident_id}")
+            return
+            
+        # Get the current message to preserve its structure
+        try:
+            message_response = client.conversations_history(
+                channel=incident_id,
+                inclusive=True,
+                oldest=bp_message_ts,
+                limit=1
+            )
+            
+            if not message_response.get("messages"):
+                logger.error(f"No message found with timestamp {bp_message_ts}")
+                return
+                
+            current_message = message_response["messages"][0]
+            current_blocks = current_message.get("blocks", [])
+            
+            # Find the header block and update it to include JIRA info
+            updated_blocks = []
+            jira_info_added = False
+            
+            for block in current_blocks:
+                if block.get("block_id") == "header":
+                    # Update the header to include JIRA ticket info
+                    updated_blocks.append({
+                        "type": "header",
+                        "text": {
+                            "type": "plain_text",
+                            "text": f"We're in an incident - now what? | JIRA: {jira_key}",
+                        },
+                    })
+                    jira_info_added = True
+                else:
+                    updated_blocks.append(block)
+            
+            # If we didn't find the header block, add JIRA info as a new section
+            if not jira_info_added:
+                # Insert JIRA info after the first divider
+                insert_index = 0
+                for i, block in enumerate(updated_blocks):
+                    if block.get("type") == "divider":
+                        insert_index = i + 1
+                        break
+                
+                jira_block = {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*JIRA Issue:* <{jira_link}|{jira_key}>",
+                    },
+                }
+                updated_blocks.insert(insert_index, jira_block)
+            
+            # Update the message
+            client.chat_update(
+                channel=incident_id,
+                ts=bp_message_ts,
+                blocks=updated_blocks,
+                text=f"We're in an incident - now what? | JIRA: {jira_key}"
+            )
+            
+            logger.info(f"Successfully updated boilerplate message for incident {incident_id} with JIRA {jira_key}")
+            
+        except Exception as error:
+            logger.error(f"Error retrieving message for update: {error}")
+            
+    except Exception as error:
+        logger.error(f"Error updating boilerplate message with JIRA info: {error}")
 
 
 @app.event("app_home_opened")
@@ -1726,6 +1818,13 @@ def handle_submission(ack, body, client, view):
         db_update_jira_issues_col(
             channel_id=incident_id, issue_link=issue_link
         )
+        
+        # Update the boilerplate message with JIRA ticket info
+        try:
+            update_boilerplate_with_jira_info(client, incident_id, resp.get("key"), issue_link)
+        except Exception as error:
+            logger.error(f"Error updating boilerplate message with JIRA info: {error}")
+        
         try:
             resp = client.chat_postMessage(
                 channel=incident_id,

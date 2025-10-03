@@ -722,3 +722,62 @@ class TestIncidentManagement:
                 "type": "context",
             },
         ]
+        
+    def test_boilerplate_jira_update_function(self):
+        """
+        Test that the boilerplate update function works correctly
+        """
+        from bot.slack.modals import update_boilerplate_with_jira_info
+        from unittest.mock import Mock, patch
+        
+        # Mock the database call
+        mock_incident_record = Mock()
+        mock_incident_record.bp_message_ts = "1234567890.123456"
+        
+        # Mock the Slack client
+        mock_client = Mock()
+        mock_client.conversations_history.return_value = {
+            "messages": [
+                {
+                    "blocks": [
+                        {"type": "divider"},
+                        {
+                            "block_id": "header",
+                            "type": "header",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "We're in an incident - now what?",
+                            },
+                        },
+                        {"type": "divider"},
+                    ]
+                }
+            ]
+        }
+        
+        with patch('bot.slack.modals.db_read_incident', return_value=mock_incident_record):
+            # Test the function
+            update_boilerplate_with_jira_info(
+                client=mock_client,
+                incident_id="C1234567890",
+                jira_key="SRE-123",
+                jira_link="https://example.atlassian.net/browse/SRE-123"
+            )
+            
+            # Verify the client was called correctly
+            mock_client.conversations_history.assert_called_once_with(
+                channel="C1234567890",
+                inclusive=True,
+                oldest="1234567890.123456",
+                limit=1
+            )
+            
+            # Verify chat_update was called
+            mock_client.chat_update.assert_called_once()
+            update_call = mock_client.chat_update.call_args
+            
+            # Check that the header was updated with JIRA info
+            blocks = update_call[1]['blocks']
+            header_block = next((block for block in blocks if block.get("block_id") == "header"), None)
+            assert header_block is not None
+            assert "JIRA: SRE-123" in header_block["text"]["text"]
