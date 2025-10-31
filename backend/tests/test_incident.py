@@ -215,7 +215,7 @@ class TestIncidentManagement:
                                 "text": "Join Incident Channel",
                             },
                             "style": "primary",
-                            "url": "https://test.slack.com/archives/mock",
+                            "url": "https://test.slack.com/archives/CBR2V3XEX",
                             "action_id": "incident.join_incident_channel",
                         },
 #                        {
@@ -591,7 +591,7 @@ class TestIncidentManagement:
         severity = "sev4"
         is_security_incident = False
         msg = IncidentChannelDigestNotification.update(
-            incident_id="mock",
+            channel_id="C1234567890",
             incident_description="mock",
             is_security_incident=is_security_incident,
             status=status,
@@ -648,7 +648,7 @@ class TestIncidentManagement:
                             "text": "Join Incident Channel",
                         },
                         "style": "primary",
-                        "url": "https://test.slack.com/archives/mock",
+                        "url": "https://test.slack.com/archives/C1234567890",
                         "action_id": "incident.join_incident_channel",
                     },
 #                    {

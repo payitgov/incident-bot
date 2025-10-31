@@ -1,6 +1,7 @@
 import asyncio
 import config
 from datetime import datetime
+import json
 import logging
 import re
 import slack_sdk.errors
@@ -268,12 +269,18 @@ def create_incident(
             Notify incidents digest channel (#incidents)
             """
             try:
+                message_payload = IncidentChannelDigestNotification.create(
+                    incident_channel_details=created_channel_details,
+                    conference_bridge=incident.conference_bridge,
+                    severity=severity,
+                )
+                # Log the full message payload for debugging (useful for Slack support)
+                # This payload can be shared with Slack support when troubleshooting the "REB..." error
+                logger.info(
+                    f"Digest notification message payload for incident {created_channel_details.get('name')}:\n{json.dumps(message_payload, indent=2)}"
+                )
                 digest_message = slack_web_client.chat_postMessage(
-                    **IncidentChannelDigestNotification.create(
-                        incident_channel_details=created_channel_details,
-                        conference_bridge=incident.conference_bridge,
-                        severity=severity,
-                    ),
+                    **message_payload,
                     text="New Incident",
                 )
                 logger.debug(f"\n{digest_message}\n")
