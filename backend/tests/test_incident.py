@@ -288,7 +288,7 @@ class TestIncidentManagement:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "The incident starts out in *investigating* mode. As the incident progresses, it can be moved through statuses until it is resolved.",
+                        "text": "The incident starts out as *declared*. As the incident progresses, it can be moved through statuses until it is resolved.",
                     },
                 },
                 {"type": "divider"},
