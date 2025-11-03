@@ -1,4 +1,5 @@
 import config
+import json
 import logging
 import slack_sdk.errors
 import variables
@@ -545,17 +546,24 @@ async def set_status(
 
     # Also updates digest message
     try:
+        update_blocks = IncidentChannelDigestNotification.update(
+            channel_id=incident_data.channel_id,
+            incident_description=incident_data.channel_description,
+            is_security_incident=incident_data.is_security_incident,
+            status=action_value,
+            severity=incident_data.severity,
+            conference_bridge=incident_data.conference_bridge,
+        )
+        # Log the full message payload for debugging (useful for Slack support)
+        # This payload can be shared with Slack support when troubleshooting the "REB..." error
+        logger.info(
+            f"Digest notification update payload for incident {incident_data.channel_name}:\n"
+            f"{json.dumps({'channel': variables.digest_channel_id, 'ts': incident_data.dig_message_ts, 'blocks': update_blocks}, indent=2)}"
+        )
         slack_web_client.chat_update(
             channel=variables.digest_channel_id,
             ts=incident_data.dig_message_ts,
-            blocks=IncidentChannelDigestNotification.update(
-                incident_id=incident_data.channel_name,
-                incident_description=incident_data.channel_description,
-                is_security_incident=incident_data.is_security_incident,
-                status=action_value,
-                severity=incident_data.severity,
-                conference_bridge=incident_data.conference_bridge,
-            ),
+            blocks=update_blocks,
             text="",
         )
     except slack_sdk.errors.SlackApiError as error:

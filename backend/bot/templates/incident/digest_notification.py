@@ -74,7 +74,7 @@ class IncidentChannelDigestNotification:
                             "style": "primary",
                             "url": "https://{}.slack.com/archives/{}".format(
                                 slack_workspace_id,
-                                incident_channel_details.get("name"),
+                                incident_channel_details.get("id"),
                             ),
                             "action_id": "incident.join_incident_channel",
                         },
@@ -114,7 +114,7 @@ class IncidentChannelDigestNotification:
 
     @staticmethod
     def update(
-        incident_id: str,
+        channel_id: str,
         incident_description: str,
         is_security_incident: bool,
         status: str,
@@ -185,7 +185,7 @@ class IncidentChannelDigestNotification:
                             "text": "Join Incident Channel",
                         },
                         "style": "primary",
-                        "url": f"https://{slack_workspace_id}.slack.com/archives/{incident_id}",
+                        "url": f"https://{slack_workspace_id}.slack.com/archives/{channel_id}",
                         "action_id": "incident.join_incident_channel",
                     },
 #                    {
