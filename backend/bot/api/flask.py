@@ -19,11 +19,9 @@ from flasgger import Swagger
 from flask import Flask, request, Response
 from flask import jsonify, make_response, redirect, render_template
 from flask_cors import CORS
-from flask_debugtoolbar import DebugToolbarExtension
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_marshmallow import Marshmallow
-from flask import Flask
 
 logger = logging.getLogger("api")
 
@@ -57,7 +55,6 @@ limiter = Limiter(
 )
 
 app.debug = config.flask_debug_mode
-toolbar = DebugToolbarExtension(app)
 
 """
 Request Modifiers
