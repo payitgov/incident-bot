@@ -6,6 +6,15 @@ import re
 
 from bot.shared import tools
 from datetime import timedelta
+# Monkey patch for Flask 3.0 compatibility with flasgger
+# In Flask 3.0+, Markup was moved from flask to markupsafe
+# We need to patch flask before flasgger imports it
+import flask
+try:
+    from markupsafe import Markup
+    flask.Markup = Markup
+except ImportError:
+    pass
 from flasgger import Swagger
 from flask import Flask, request, Response
 from flask import jsonify, make_response, redirect, render_template
