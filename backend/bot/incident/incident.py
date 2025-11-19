@@ -10,13 +10,16 @@ from bot.audit import log
 from bot.exc import ConfigurationError
 from bot.models.incident import (
     db_update_incident_created_at_col,
+    db_update_incident_role,
     db_update_incident_sp_ts_col,
+    db_update_incident_updated_at_col,
     db_write_incident,
 )
 from bot.models.pager import read_pager_auto_page_targets
 from bot.shared import tools
 from bot.slack.client import (
     all_workspace_groups,
+    get_message_content,
     slack_web_client,
     slack_workspace_id,
 )
@@ -27,6 +30,8 @@ from bot.templates.incident.channel_boilerplate import (
 from bot.templates.incident.digest_notification import (
     IncidentChannelDigestNotification,
 )
+from bot.templates.incident.updates import IncidentUpdate
+from bot.templates.incident.user_dm import IncidentUserNotification
 from bot.zoom.meeting import ZoomMeeting
 from bot.googlemeet.meeting import GoogleMeet
 from cerberus import Validator
@@ -332,6 +337,115 @@ def create_incident(
                 channel=created_channel_details["id"],
                 timestamp=bp_message["ts"],
             )
+            """
+            Auto-assign incident commander to the user who created the incident
+            Skip auto-assignment for internal/auto-created incidents
+            """
+            try:
+                # Skip auto-assignment for internal auto-created incidents
+                if user == "internal_auto_create" or internal:
+                    logger.debug(
+                        f"Skipping auto-assignment of incident commander for internal/auto-created incident"
+                    )
+                else:
+                    # Get the user's name from Slack
+                    user_name = next(
+                        (
+                            u["name"]
+                            for u in slack_web_client.users_list()["members"]
+                            if u["id"] == user
+                        ),
+                        None,
+                    )
+                    
+                    if user_name:
+                        # Get the boilerplate message blocks
+                        bp_blocks = bp_message.get("message", {}).get("blocks", [])
+                        if not bp_blocks:
+                            # If blocks aren't in the response, fetch the message
+                            message_content = get_message_content(
+                                conversation_id=created_channel_details["id"],
+                                ts=bp_message["ts"],
+                            )
+                            bp_blocks = message_content.get("blocks", [])
+                        
+                        # Find the index of the incident_commander role block
+                        incident_commander_index = tools.find_index_in_list(
+                            bp_blocks, "block_id", "role_incident_commander"
+                        )
+                        
+                        if incident_commander_index != -1:
+                            # Update the block to show the user as incident commander
+                            bp_blocks[incident_commander_index]["text"]["text"] = (
+                                f"*Incident Commander*:\n <@{user}>"
+                            )
+                            
+                            # Update the Slack message
+                            slack_web_client.chat_update(
+                                channel=created_channel_details["id"],
+                                ts=bp_message["ts"],
+                                blocks=bp_blocks,
+                                text="Details",
+                            )
+                            
+                            # Update the database
+                            db_update_incident_role(
+                                channel_id=created_channel_details["id"],
+                                role="incident_commander",
+                                user=user_name,
+                            )
+                            
+                            # Send update notification message to incident channel
+                            try:
+                                slack_web_client.chat_postMessage(
+                                    **IncidentUpdate.role(
+                                        channel=created_channel_details["id"],
+                                        role="Incident Commander",
+                                        user=user,
+                                    ),
+                                    text=f"{user} is now Incident Commander",
+                                )
+                            except slack_sdk.errors.SlackApiError as error:
+                                logger.error(
+                                    f"Error sending role update to the incident channel: {error}"
+                                )
+                            
+                            # Let the user know they've been assigned the role
+                            try:
+                                slack_web_client.chat_postMessage(
+                                    **IncidentUserNotification.create(
+                                        user=user,
+                                        role="incident_commander",
+                                        channel=created_channel_details["id"],
+                                    ),
+                                    text=f"You have been assigned Incident Commander for incident <#{created_channel_details['id']}>",
+                                )
+                            except slack_sdk.errors.SlackApiError as error:
+                                logger.error(
+                                    f"Error sending role description to user: {error}"
+                                )
+                            
+                            # Write audit log
+                            log.write(
+                                incident_id=created_channel_details["name"],
+                                event=f"User {user_name} was auto-assigned role incident_commander.",
+                            )
+                            
+                            logger.info(
+                                f"{user_name} was auto-assigned incident_commander in {created_channel_details['name']}"
+                            )
+                        else:
+                            logger.warning(
+                                f"Could not find role_incident_commander block in boilerplate message for {created_channel_details['name']}"
+                            )
+                    else:
+                        logger.warning(
+                            f"Could not find user name for user ID {user} when auto-assigning incident commander"
+                        )
+            except Exception as error:
+                logger.error(
+                    f"Error auto-assigning incident commander: {error}"
+                )
             """
             Post conference link in the channel upon creation
             """
