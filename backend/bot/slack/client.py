@@ -286,3 +286,90 @@ def check_bot_user_in_digest_channel():
         logger.info(
             f"Bot user is already present in digest channel #{get_channel_name(channel_id=digest_channel_id)}"
         )
+
+
+def find_app_bot_user_id(app_id: str) -> str:
+    """
+    Finds the bot user ID for a given Slack app ID
+    
+    Note: Not all Slack integrations have bot users. This function only works
+    for apps that have been configured with a bot user. Apps without bot users
+    (like incoming webhooks) cannot be added to channels programmatically.
+    
+    Args:
+        app_id: The Slack app ID (starts with "A")
+    
+    Returns:
+        The bot user ID (starts with "U") or None if not found
+    """
+    try:
+        users = slack_web_client.users_list()["members"]
+        for user in users:
+            # Check if this is a bot user and matches the app
+            if user.get("is_bot") and user.get("profile", {}).get("api_app_id") == app_id:
+                bot_user_id = user.get("id")
+                logger.info(f"Found bot user ID {bot_user_id} for app {app_id}")
+                return bot_user_id
+        
+        # If not found, log more details for debugging
+        logger.warning(
+            f"Could not find bot user ID for app {app_id}. "
+            "This app may not have a bot user configured, or the app may not be installed in this workspace."
+        )
+        # Log all bot users for debugging (optional, can be removed in production)
+        bot_users = [u for u in users if u.get("is_bot")]
+        logger.debug(f"Found {len(bot_users)} bot users in workspace")
+        return None
+    except Exception as error:
+        logger.error(f"Error finding bot user ID for app {app_id}: {error}")
+        return None
+
+
+def invite_app_to_channel(channel_id: str, app_user_id: str):
+    """
+    Invites a Slack app/integration to a channel
+    Checks if it's already in the channel first
+    
+    Note: This only works for apps that have bot users. Apps without bot users
+    (like incoming webhooks) cannot be added to channels using this method.
+    
+    Args:
+        channel_id: The ID of the Slack channel
+        app_user_id: The user ID of the Slack app/integration to add (must start with "U")
+    """
+    try:
+        if not app_user_id or not app_user_id.startswith("U"):
+            logger.error(
+                f"Invalid app_user_id provided: {app_user_id}. "
+                "App user IDs must start with 'U'. This integration may not have a bot user."
+            )
+            return
+        
+        channel_members = slack_web_client.conversations_members(
+            channel=channel_id
+        )["members"]
+        
+        if app_user_id not in channel_members:
+            invite = slack_web_client.conversations_invite(
+                channel=channel_id,
+                users=app_user_id,
+            )
+            logger.debug(f"\n{invite}\n")
+            logger.info(
+                f"Added Slack app/integration {app_user_id} to channel {channel_id}"
+            )
+        else:
+            logger.info(
+                f"Slack app/integration {app_user_id} is already in channel {channel_id}"
+            )
+    except SlackApiError as error:
+        error_code = error.response.get("error", "") if hasattr(error, "response") else "unknown"
+        if error_code == "invalid_users":
+            logger.error(
+                f"Invalid user ID {app_user_id} for app/integration. "
+                "This integration may not have a bot user that can be invited to channels."
+            )
+        else:
+            logger.error(
+                f"Error when inviting app/integration {app_user_id} to channel {channel_id}: {error}"
+            )
