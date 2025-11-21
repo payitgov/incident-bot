@@ -55,6 +55,20 @@ options:
     groups:
       - my-slack-group
       - my-other-slack-group
+  # Automatically add a Slack app/integration to newly created incident channels
+  # Note: This only works for apps that have bot users. Apps without bot users
+  # (like incoming webhooks) cannot be added to channels programmatically.
+  auto_add_slack_integration:
+    # Set to true to enable
+    enabled: true
+    # The app ID of the Slack app/integration (starts with "A")
+    # The bot user ID will be automatically looked up from this
+    # Only works if the app has a bot user configured
+    app_id: "A08QXRG0DCP"
+    # Alternatively, you can provide the bot user ID directly (starts with "U")
+    # If both are provided, app_user_id takes precedence
+    # You can find this by checking the app's profile in Slack or using the Slack API
+    app_user_id: ""
   # Ignore logging for requests from the following user-agents
   skip_logs_for_user_agent:
     # Kubernetes health check user-agent

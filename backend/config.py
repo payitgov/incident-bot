@@ -172,6 +172,27 @@ class Configuration:
                         "schema": {
                             "type": "string"
                         }
+                    },
+                    "auto_add_slack_integration": {
+                        "required": False,
+                        "type": "dict",
+                        "schema": {
+                            "enabled": {
+                                "required": True,
+                                "type": "boolean",
+                                "empty": False,
+                            },
+                            "app_id": {
+                                "required": False,
+                                "type": "string",
+                                "empty": True,
+                            },
+                            "app_user_id": {
+                                "required": False,
+                                "type": "string",
+                                "empty": True,
+                            },
+                        },
                     }
                 },
             },
@@ -438,6 +459,15 @@ def env_check(required_envs: List[str]):
                 f"If enabling auto create via react, the reacji field in config.yaml should be set."
             )
             sys.exit(1)
+    if active.options.get("auto_add_slack_integration"):
+        if active.options.get("auto_add_slack_integration").get("enabled"):
+            app_user_id = active.options.get("auto_add_slack_integration").get("app_user_id")
+            app_id = active.options.get("auto_add_slack_integration").get("app_id")
+            if (not app_user_id or app_user_id == "") and (not app_id or app_id == ""):
+                logger.fatal(
+                    f"If enabling auto_add_slack_integration, either app_id or app_user_id must be set in config.yaml."
+                )
+                sys.exit(1)
     if "atlassian" in active.integrations:
         if "confluence" in active.integrations.get("atlassian"):
             for var in [

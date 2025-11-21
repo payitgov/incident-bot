@@ -19,7 +19,9 @@ from bot.models.pager import read_pager_auto_page_targets
 from bot.shared import tools
 from bot.slack.client import (
     all_workspace_groups,
+    find_app_bot_user_id,
     get_message_content,
+    invite_app_to_channel,
     slack_web_client,
     slack_workspace_id,
 )
@@ -525,6 +527,46 @@ def create_incident(
 
             # Invite the user who opened the channel to the channel.
             invite_user_to_channel(created_channel_details["id"], user)
+            
+            """
+            Automatically add Slack app/integration to the channel if enabled
+            """
+            if config.active.options.get("auto_add_slack_integration").get("enabled"):
+                app_user_id = config.active.options.get("auto_add_slack_integration").get("app_user_id")
+                app_id = config.active.options.get("auto_add_slack_integration").get("app_id")
+                
+                # If app_user_id is not provided but app_id is, try to find the bot user ID
+                if not app_user_id and app_id:
+                    logger.info(f"Looking up bot user ID for app {app_id}")
+                    app_user_id = find_app_bot_user_id(app_id)
+                    if not app_user_id:
+                        logger.error(
+                            f"Could not find bot user ID for app {app_id}. Please provide app_user_id directly in config."
+                        )
+                
+                if app_user_id:
+                    try:
+                        invite_app_to_channel(
+                            channel_id=created_channel_details["id"],
+                            app_user_id=app_user_id,
+                        )
+                        # Write audit log
+                        log.write(
+                            incident_id=created_channel_details["name"],
+                            event=f"Slack app/integration {app_user_id} was automatically added to the incident channel.",
+                        )
+                        logger.info(
+                            f"Automatically added Slack app/integration {app_user_id} to {created_channel_details['name']}"
+                        )
+                    except Exception as error:
+                        logger.error(
+                            f"Error automatically adding Slack app/integration to channel: {error}"
+                        )
+                else:
+                    logger.warning(
+                        "auto_add_slack_integration is enabled but neither app_user_id nor app_id is configured"
+                    )
+            
             # Return for view method
             temp_channel_id = created_channel_details["id"]
 
