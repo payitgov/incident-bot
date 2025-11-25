@@ -27,10 +27,6 @@ options:
     enabled: true
     groups:
       - sre-concierge
-  auto_add_slack_integration:
-    enabled: false
-    app_id: ""
-    app_user_id: ""
   skip_logs_for_user_agent:
     - kube-probe
     - ELB-HealthChecker/2.0
