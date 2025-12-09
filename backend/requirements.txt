@@ -77,7 +77,10 @@ tomli==2.0.1
 typing_extensions==4.7.1
 tzlocal==5.0.1
 uritemplate==4.1.1
-urllib3==1.26.16
+# Security fix: SNYK-PYTHON-URLLIB3-14192442 (CVE-2025-66471) - Improper Handling of Highly Compressed Data
+# Security fix: SNYK-PYTHON-URLLIB3-14192443 (CVE-2025-66418) - Allocation of Resources Without Limits or Throttling
+# Requires >= 2.6.0
+urllib3==2.6.0
 waitress==3.0.2
 # Security fix: SNYK-PYTHON-WERKZEUG-6808933 (CVE-2024-34069) - Remote Code Execution
 # Requires >= 3.0.3
