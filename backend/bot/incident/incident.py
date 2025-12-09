@@ -218,7 +218,7 @@ class Incident:
         ).lower()
         # Remove any special characters (allow only alphanumeric and hyphens)
         formatted_channel_name_suffix = re.sub(
-            "[^A-Za-z0-9-\s]",
+            r"[^A-Za-z0-9-\s]",
             "",
             formatted_channel_name_suffix,
         )

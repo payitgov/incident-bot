@@ -163,22 +163,6 @@ class IncidentChannelBoilerplateMessage:
                 "style": "primary",
             },
         ]
-        if (
-            "atlassian" in config.active.integrations
-            and "jira" in config.active.integrations.get("atlassian")
-        ):
-            button_el.append(
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "Create Jira Issue",
-                        "emoji": True,
-                    },
-                    "action_id": "open_incident_create_jira_issue_modal",
-                    "style": "primary",
-                },
-            )
         button_el.extend(
             [
                 {

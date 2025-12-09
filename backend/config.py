@@ -39,7 +39,7 @@ class Configuration:
         )
         with open(self.filepath, "r") as yamlfile:
             self.live = yaml.load(yamlfile, Loader=yaml.FullLoader)
-        self.url_regex = "^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+"
+        self.url_regex = r"^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+"
 
     def validate(self):
         """Given a config supplied as dict[str, any], validate its
