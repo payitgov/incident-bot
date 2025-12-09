@@ -20,7 +20,8 @@ Flask-Login==0.6.2
 flask-marshmallow==0.14.0
 google-api-core==2.28.1
 google-api-python-client==2.92.0
-google-auth==2.21.0
+# Updated to support urllib3 2.x (required for security fixes)
+google-auth==2.43.0
 google-auth-httplib2==0.1.0
 google-auth-oauthlib==1.0.0
 googleapis-common-protos==1.71.0
