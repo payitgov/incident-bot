@@ -405,16 +405,6 @@ class TestIncidentManagement:
                         "text": "Claim Role",
                         "emoji": True,
                     },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Claim",
-                            "emoji": True,
-                        },
-                        "value": "incident_commander",
-                        "action_id": "incident.claim_role",
-                    },
                 },
                 {
                     "type": "section",
@@ -450,16 +440,6 @@ class TestIncidentManagement:
                         "text": "Claim Role",
                         "emoji": True,
                     },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Claim",
-                            "emoji": True,
-                        },
-                        "value": "technical_lead",
-                        "action_id": "incident.claim_role",
-                    },
                 },
                 {
                     "type": "section",
@@ -494,16 +474,6 @@ class TestIncidentManagement:
                         "type": "plain_text",
                         "text": "Claim Role",
                         "emoji": True,
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Claim",
-                            "emoji": True,
-                        },
-                        "value": "communications_liaison",
-                        "action_id": "incident.claim_role",
                     },
                 },
                 {

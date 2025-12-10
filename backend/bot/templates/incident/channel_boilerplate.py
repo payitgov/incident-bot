@@ -120,16 +120,6 @@ class IncidentChannelBoilerplateMessage:
                             "text": "Claim Role",
                             "emoji": True,
                         },
-                        "accessory": {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": "Claim",
-                                "emoji": True,
-                            },
-                            "value": role,
-                            "action_id": "incident.claim_role",
-                        },
                     },
                     {
                         "type": "section",
